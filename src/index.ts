@@ -23,7 +23,7 @@ app.use(cors(corsOptions));
 app.use("/api/v1/auth/user", UserRouter)
 
 app.get("/", (req, res) => {
-    res.send("SWS NEW SERVER IS UP!!")
+    res.send("LetMeRecall Server is up!!")
 })
 
 app.listen(PORT, () => {
