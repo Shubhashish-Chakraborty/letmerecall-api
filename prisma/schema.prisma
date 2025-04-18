@@ -8,13 +8,57 @@ datasource db {
 }
 
 model User {
-  id                  String          @id @default(cuid())
+  id                  String    @id @default(cuid())
   username            String
-  email               String          @unique
+  email               String    @unique
   password            String
-  isMailVerified      Boolean         @default(false)
-  otpForVerification  String          @default("")
-  otpForResetPassword String          @default("")
-  UserAddedAt         DateTime        @default(now())
+  isMailVerified      Boolean   @default(false)
+  otpForVerification  String    @default("")
+  otpForResetPassword String    @default("")
+  UserAddedAt         DateTime  @default(now())
+  contents            Content[]
+  avatar              Avatar[]
 }
 
+model Avatar {
+  id        Int      @id @default(autoincrement())
+  publicId  String   @unique
+  url       String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String // Foreign key to User's Table
+}
+
+model Content {
+  id          String         @id @default(uuid())
+  type        ContentType
+  url         String?
+  title       String
+  description String?
+  userId      String // to which user this content belogs to!!
+  user        User           @relation(fields: [userId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  images      ContentImage[]
+
+  @@index([userId])
+}
+
+model ContentImage {
+  id        Int      @id @default(autoincrement())
+  publicId  String   @unique
+  url       String
+  createdAt DateTime @default(now())
+  content   Content  @relation(fields: [contentId], references: [id])
+  contentId String
+  userId    String
+}
+
+enum ContentType {
+  LINK
+  YOUTUBE
+  TWEET
+  DOCUMENT
+  IMAGE // Cloudinary storage!
+  OTHER
+}
