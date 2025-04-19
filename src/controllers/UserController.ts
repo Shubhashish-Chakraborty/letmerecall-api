@@ -205,3 +205,36 @@ export const session = (req: Request, res: Response) => {
         }
     })
 }
+
+export const getAllUsers = async (req: Request, res: Response) => {
+    const USERS = await prisma.user.findMany();
+    // let finalUserArray: UserResponse[] = [];
+
+    let finalUserArray: {
+        id: String;
+        username: string;
+        email: string;
+        // isMailVerified: boolean;
+        userAddedAt: Date;
+    }[] = [];
+
+    USERS.forEach((user: {
+        id: string;
+        username: string;
+        email: string;
+        // isMailVerified: boolean;
+        UserAddedAt: Date;
+    }) => {
+        finalUserArray.push({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            // isMailVerified: user.isMailVerified,
+            userAddedAt: user.UserAddedAt
+        });
+    });
+
+    res.json({
+        finalUserArray
+    })
+}
