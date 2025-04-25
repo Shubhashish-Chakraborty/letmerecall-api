@@ -4,6 +4,7 @@ import { PORT } from './config';
 import cookieParser from "cookie-parser";
 import { UserRouter } from './routes/UserRoutes';
 import { ContentRouter } from './routes/ContentRoutes';
+import { AvatarRouter } from './routes/AvatarRoutes';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(cors(corsOptions));
 
 app.use("/api/v1/auth/user", UserRouter);
 app.use("/api/v1/content" , ContentRouter);
+app.use("/api/v1/avatar", AvatarRouter);
 
 app.get("/", (req, res) => {
     res.send("LetMeRecall Server is up!!")
