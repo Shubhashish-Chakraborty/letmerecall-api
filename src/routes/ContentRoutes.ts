@@ -7,4 +7,5 @@ export const ContentRouter = Router();
 ContentRouter.post("/create-content" , UserAuth , createContent);
 ContentRouter.get("/my-content" , UserAuth , getContent);
 ContentRouter.put("/update-content" , UserAuth , updateContent);
-ContentRouter.delete("/delete-content" , UserAuth , deleteContent);
+// ContentRouter.delete("/delete-content" , UserAuth , deleteContent);
+ContentRouter.delete("/:id", UserAuth, deleteContent);

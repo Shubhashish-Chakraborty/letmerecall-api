@@ -59,48 +59,67 @@ export const createContent = async (req: Request, res: Response) => {
 
 export const getContent = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
         const userId = (req as any).user.id;
 
-        const content = await prisma.content.findFirst({
-            where: {
-                id,
-                userId
-            },
-            include: {
-                images: true
-            }
+        const contents = await prisma.content.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
         });
-
-        if (!content) {
-            res.status(400).json({
-                // success: false,
-                message: 'Content not found!'
-            });
-            return;
-        }
 
         res.status(200).json({
-            message: "Content fetched successfully!!",
-            content
+            success: true,
+            contents
         });
-        return;
-
     } catch (error) {
         console.error(error);
         res.status(500).json({
             success: false,
             message: "Something went wrong, Please Try Again Later"
         });
-        return;
     }
-}
+};
 
 export const updateContent = (req: Request, res: Response) => {
 
 }
 
-export const deleteContent = (req: Request, res: Response) => {
+export const deleteContent = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = (req as any).user.id;
 
+        // First check if content belongs to user
+        const content = await prisma.content.findFirst({
+            where: { id, userId }
+        });
 
-}
+        if (!content) {
+            res.status(404).json({
+                success: false,
+                message: "Content not found or you don't have permission to delete it"
+            });
+            return;
+        }
+
+        // Delete associated images first if they exist
+        await prisma.contentImage.deleteMany({
+            where: { contentId: id }
+        });
+
+        // Then delete the content
+        await prisma.content.delete({
+            where: { id }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Content deleted successfully"
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong, Please Try Again Later"
+        });
+    }
+};
