@@ -42,11 +42,10 @@ OauthRouter.get(
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "development",
+            secure: true,
             sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
             maxAge: 4 * 24 * 60 * 60 * 1000, // 4 Days
             path: "/",
-            // domain: process.env.NODE_ENV === "development" ? "localhost" : ".yourdomain.com"
         });
 
         // Also include token in redirect URL as fallback
@@ -54,8 +53,6 @@ OauthRouter.get(
         redirectUrl.searchParams.set('token', token);
 
         res.redirect(redirectUrl.toString());
-
-        // res.redirect(`${FRONTEND_URL}/dashboard`);
     }
 );
 
@@ -93,11 +90,10 @@ OauthRouter.get(
         // Set cookie with same configuration
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
             sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
             maxAge: 4 * 24 * 60 * 60 * 1000, // 4 days
             path: "/",
-            // domain: process.env.NODE_ENV === "development" ? "localhost" : ".yourdomain.com"
         });
 
         // Redirect to frontend dashboard
@@ -107,15 +103,6 @@ OauthRouter.get(
         res.redirect(redirectUrl.toString());
     }
 );
-// OauthRouter.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
-
-// OauthRouter.get(
-//     '/github/callback',
-//     passport.authenticate('github', {
-//         successRedirect: '/dashboard',
-//         failureRedirect: '/auth/failure',
-//     })
-// );
 
 // Logout
 OauthRouter.get('/logout', logout);

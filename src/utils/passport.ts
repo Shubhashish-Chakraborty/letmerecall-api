@@ -2,7 +2,6 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import prisma from '../db/prisma';
-import { VerifyCallback } from 'passport-oauth2';
 import { generateHashedPassword } from './generateHash';
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '../config';
 
@@ -123,43 +122,3 @@ passport.use(
         }
     )
 );
-
-
-// passport.use(
-//     'github',
-//     new GitHubStrategy(
-//         {
-//             clientID: GITHUB_CLIENT_ID,
-//             clientSecret: GITHUB_CLIENT_SECRET,
-//             callbackURL: `${BASE_URL}/auth/github/callback`,
-//         },
-//         async (_accessToken: string, _refreshToken: string, profile: any, done: VerifyCallback) => {
-//             try {
-//                 const email = profile.emails?.[0]?.value || `${profile.username}@users.noreply.github.com`;
-
-//                 const existingUser = await prisma.user.findUnique({
-//                     where: { email },
-//                 });
-
-//                 if (existingUser) {
-//                     return done(null, existingUser);
-//                 }
-
-//                 const newUser = await prisma.user.create({
-//                     data: {
-//                         email,
-//                         username: profile.username || `user-${Math.random().toString(36).substring(2, 9)}`,
-//                         password: await generateHashedPassword(),
-//                         isMailVerified: true,
-//                         provider: 'github',
-//                         providerId: profile.id,
-//                     },
-//                 });
-
-//                 return done(null, newUser);
-//             } catch (err) {
-//                 return done(err as Error);
-//             }
-//         }
-//     )
-// );
