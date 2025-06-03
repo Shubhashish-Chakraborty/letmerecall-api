@@ -200,7 +200,8 @@ export const me = async (req: Request, res: Response) => {
 export const session = async (req: Request, res: Response) => {
     try {
         // Get token from cookies or Authorization header
-        const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+        // const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+        const token = req.cookies?.token || req.headers.authorization?.split(' ')[1] || req.query.token;
 
         if (!token) {
             res.status(200).json({

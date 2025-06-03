@@ -4,7 +4,8 @@ import { JWT_USER_SECRET } from "../config";
 
 export const UserAuth = (req: Request, res: Response, next: NextFunction) => {
     // Try to get token from cookies or Authorization header
-    let token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    // let token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1] || req.query.token;
 
     if (!token) {
         res.status(401).json({
@@ -17,7 +18,7 @@ export const UserAuth = (req: Request, res: Response, next: NextFunction) => {
         const decoded = jwt.verify(token, JWT_USER_SECRET) as {
             id: string; email: string
         };
-        
+
         (req as any).user = decoded;
         next();
     } catch (error) {
