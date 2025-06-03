@@ -15,90 +15,49 @@ OauthRouter.get('/google', passport.authenticate('google', {
     session: false // We're using JWT instead of sessions
 }));
 
+
 OauthRouter.get(
     '/google/callback',
     passport.authenticate('google', {
-        failureRedirect: `${FRONTEND_URL}/auth/failure`,
+        failureRedirect: '/auth/failure',
         session: false
     }),
     (req, res) => {
         if (!req.user) {
-            return res.redirect(`${FRONTEND_URL}/auth/failure`);
+            res.redirect('/auth/failure');
+            return
         }
 
-        const user = req.user as any;
+        // Generate JWT token
         const token = jwt.sign(
-            { id: user.id, email: user.email },
+            {
+                id: (req.user as any).id,
+                email: (req.user as any).email
+            },
             JWT_USER_SECRET,
-            { expiresIn: "4d" }
+            {
+                expiresIn: "4d"
+            }
         );
 
-        // Enhanced cookie settings
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // Fixed
+            secure: process.env.NODE_ENV === "development",
             sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
-            maxAge: 4 * 24 * 60 * 60 * 1000,
+            maxAge: 4 * 24 * 60 * 60 * 1000, // 4 Days
             path: "/",
-            domain: process.env.COOKIE_DOMAIN // Set this in your .env
+            // domain: process.env.NODE_ENV === "development" ? "localhost" : ".yourdomain.com"
         });
 
-        // Verify token was created
-        if (!token) {
-            return res.redirect(`${FRONTEND_URL}/auth/failure?error=token_generation`);
-        }
-
-        // Double-secure: Set both cookie and URL token
+        // Also include token in redirect URL as fallback
         const redirectUrl = new URL(`${FRONTEND_URL}/dashboard`);
         redirectUrl.searchParams.set('token', token);
-        redirectUrl.searchParams.set('oauth', 'success');
 
-        return res.redirect(redirectUrl.toString());
+        res.redirect(redirectUrl.toString());
+
+        // res.redirect(`${FRONTEND_URL}/dashboard`);
     }
 );
-
-// OauthRouter.get(
-//     '/google/callback',
-//     passport.authenticate('google', {
-//         failureRedirect: '/auth/failure',
-//         session: false
-//     }),
-//     (req, res) => {
-//         if (!req.user) {
-//             res.redirect('/auth/failure');
-//             return
-//         }
-
-//         // Generate JWT token
-//         const token = jwt.sign(
-//             {
-//                 id: (req.user as any).id,
-//                 email: (req.user as any).email
-//             },
-//             JWT_USER_SECRET,
-//             {
-//                 expiresIn: "4d"
-//             }
-//         );
-
-//         res.cookie("token", token, {
-//             httpOnly: true,
-//             secure: process.env.NODE_ENV === "development",
-//             sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
-//             maxAge: 4 * 24 * 60 * 60 * 1000, // 4 Days
-//             path: "/",
-//             // domain: process.env.NODE_ENV === "development" ? "localhost" : ".yourdomain.com"
-//         });
-
-//         // Also include token in redirect URL as fallback
-//         const redirectUrl = new URL(`${FRONTEND_URL}/dashboard`);
-//         redirectUrl.searchParams.set('token', token);
-
-//         res.redirect(redirectUrl.toString());
-
-//         // res.redirect(`${FRONTEND_URL}/dashboard`);
-//     }
-// );
 
 /* GitHub Auth */
 
