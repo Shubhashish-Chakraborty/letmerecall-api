@@ -4,6 +4,7 @@ config();
 export const PORT = process.env.PORT || 3000;
 export const JWT_USER_SECRET = process.env.JWT_USER_SECRET as string;
 export const FRONTEND_URL = process.env.FRONTEND_URL;
+export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN;
 
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
