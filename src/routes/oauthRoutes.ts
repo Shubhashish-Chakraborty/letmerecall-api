@@ -1,0 +1,92 @@
+import jwt from 'jsonwebtoken';
+import { Router } from 'express';
+import passport from 'passport';
+import {
+    logout,
+    authFailure,
+} from '../controllers/oauthController';
+import { FRONTEND_URL, JWT_USER_SECRET } from '../config';
+
+export const OauthRouter = Router();
+
+// Google Auth
+OauthRouter.get('/google', passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false // We're using JWT instead of sessions
+}));
+
+OauthRouter.get(
+    '/google/callback',
+    passport.authenticate('google', {
+        failureRedirect: '/auth/failure',
+        session: false
+    }),
+    (req, res) => {
+        if (!req.user) {
+            res.redirect('/auth/failure');
+            return
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+            {
+                id: (req.user as any).id,
+                email: (req.user as any).email
+            },
+            JWT_USER_SECRET,
+            {
+                expiresIn: "4d"
+            }
+        );
+
+        // Construct redirect URL with token
+        // const redirectUrl = new URL(`${FRONTEND_URL}/dashboard`);
+        // redirectUrl.searchParams.set('token', token);
+
+        // Set the JWT token as an HTTP-only cookie
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "development",
+            sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+            maxAge: 4 * 24 * 60 * 60 * 1000, // 4 Days
+            path: "/",
+            // domain: process.env.NODE_ENV === "development" ? "localhost" : ".yourdomain.com"
+        });
+
+        // Also include token in redirect URL as fallback
+        const redirectUrl = new URL(`${FRONTEND_URL}/dashboard`);
+        redirectUrl.searchParams.set('token', token);
+
+        res.redirect(redirectUrl.toString());
+
+        // res.redirect(`${FRONTEND_URL}/dashboard`);
+    }
+);
+
+
+// OauthRouter.get(
+//     '/google/callback',
+//     passport.authenticate('google', {
+//         successRedirect: 'http://localhost:3000/dashboard',
+//         failureRedirect: '/auth/failure',
+//     })
+// );
+
+/* GitHub Auth */
+
+OauthRouter.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+OauthRouter.get(
+    '/github/callback',
+    passport.authenticate('github', {
+        successRedirect: '/dashboard',
+        failureRedirect: '/auth/failure',
+    })
+);
+
+// Logout
+OauthRouter.get('/logout', logout);
+
+// Auth Failure
+OauthRouter.get('/failure', authFailure);
