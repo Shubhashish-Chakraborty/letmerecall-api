@@ -39,12 +39,6 @@ OauthRouter.get(
             }
         );
 
-        // Construct redirect URL with token
-        // const redirectUrl = new URL(`${FRONTEND_URL}/dashboard`);
-        // redirectUrl.searchParams.set('token', token);
-
-        // Set the JWT token as an HTTP-only cookie
-
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "development",
@@ -64,26 +58,63 @@ OauthRouter.get(
     }
 );
 
-
-// OauthRouter.get(
-//     '/google/callback',
-//     passport.authenticate('google', {
-//         successRedirect: 'http://localhost:3000/dashboard',
-//         failureRedirect: '/auth/failure',
-//     })
-// );
-
 /* GitHub Auth */
 
-OauthRouter.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+OauthRouter.get('/github', passport.authenticate('github', {
+    scope: ['user:email'],
+    session: false
+}));
 
 OauthRouter.get(
     '/github/callback',
     passport.authenticate('github', {
-        successRedirect: '/dashboard',
         failureRedirect: '/auth/failure',
-    })
+        session: false
+    }),
+    (req, res) => {
+        if (!req.user) {
+            return res.redirect(`${FRONTEND_URL}/auth/failure`);
+        }
+
+        const user = req.user as any;
+
+        // Generate JWT token (same as Google flow)
+        const token = jwt.sign(
+            {
+                id: user.id,
+                email: user.email
+            },
+            JWT_USER_SECRET,
+            { expiresIn: "4d" }
+        );
+
+        // Set cookie with same configuration
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+            maxAge: 4 * 24 * 60 * 60 * 1000, // 4 days
+            path: "/",
+            // domain: process.env.NODE_ENV === "development" ? "localhost" : ".yourdomain.com"
+        });
+
+        // Redirect to frontend dashboard
+        const redirectUrl = new URL(`${FRONTEND_URL}/dashboard`);
+        redirectUrl.searchParams.set('token', token);
+
+        res.redirect(redirectUrl.toString());
+    }
 );
+// OauthRouter.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+// OauthRouter.get(
+//     '/github/callback',
+//     passport.authenticate('github', {
+//         successRedirect: '/dashboard',
+//         failureRedirect: '/auth/failure',
+//     })
+// );
 
 // Logout
 OauthRouter.get('/logout', logout);
